@@ -1,5 +1,7 @@
 import os
 
+from PyQt5 import QtGui
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QMainWindow, qApp
 
 import requests
@@ -15,17 +17,19 @@ class MapsApp(QMainWindow):
         super().__init__()
         self.setWindowTitle('Maps App')
 
-        self.map_file = None
-        self.pixmap = None
-        self.image = None
+        self.map_file = "map.png"
+        self.pixmap = QPixmap()
+        self.image = QLabel(self)
 
         self.coord = ["37.530887", "55.70311"]
         self.scale = 1.0
 
         self.get_image()
         self.init_ui()
+        self.change_image()
 
     def get_image(self):
+        print(self.coord)
         map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&spn=0.002,0.002&" \
                       f"scale={self.scale}&l=map"
         response = requests.get(map_request)
@@ -35,17 +39,31 @@ class MapsApp(QMainWindow):
             print(map_request)
             print("Http статус:", response.status_code, "(", response.reason, ")")
             qApp.exit(1)
-        self.map_file = "map.png"
         with open(self.map_file, "wb") as file:
             file.write(response.content)
 
     def init_ui(self):
         self.setGeometry(100, 100, *SCREEN_SIZE)
-        self.pixmap = QPixmap(self.map_file)
-        self.image = QLabel(self)
         self.image.move(0, 0)
         self.image.resize(600, 450)
+
+    def change_image(self):
+        self.pixmap.load(self.map_file)
         self.image.setPixmap(self.pixmap)
 
     def closeEvent(self, event):
         os.remove(self.map_file)
+
+    def keyPressEvent(self, event):
+        key = event.key()
+        if key == Qt.Key_Left:
+            self.coord[0] = str(float(self.coord[0]) - 0.001)
+        elif key == Qt.Key_Right:
+            self.coord[0] = str(float(self.coord[0]) + 0.001)
+        if key == Qt.Key_Up:
+            self.coord[1] = str(float(self.coord[1]) + 0.001)
+        elif key == Qt.Key_Down:
+            self.coord[1] = str(float(self.coord[1]) - 0.001)
+
+        self.get_image()
+        self.change_image()

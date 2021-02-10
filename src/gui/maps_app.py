@@ -64,6 +64,12 @@ class MapsApp(QMainWindow):
             self.coord[1] = str(float(self.coord[1]) + 0.001)
         elif key == Qt.Key_Down:
             self.coord[1] = str(float(self.coord[1]) - 0.001)
+        elif key == Qt.Key_PageUp:
+            if self.scale < 4:
+                self.scale += 0.1
+        elif key == Qt.Key_PageDown:
+            if self.scale > 1:
+                self.scale -= 0.1
 
         self.get_image()
         self.change_image()

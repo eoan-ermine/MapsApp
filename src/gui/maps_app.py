@@ -23,13 +23,15 @@ class MapsApp(QMainWindow):
         self.coord = ["37.530887", "55.70311"]
         self.scale = 1.0
 
+        self.point = ""
+
         self.get_image()
         self.init_ui()
         self.change_image()
 
     def get_image(self):
         map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&spn=0.002,0.002&" \
-                      f"scale={self.scale}&l=map"
+                      f"scale={self.scale}&l=map&pt={self.point}"
         self.response = requests.get(map_request)
 
         if not self.response:
@@ -54,7 +56,7 @@ class MapsApp(QMainWindow):
         self.btn.clicked.connect(self.place_find)
 
         self.text = QLineEdit(self)
-        self.text.setFocusPolicy(Qt.NoFocus)
+        self.text.setFocusPolicy(Qt.ClickFocus)
 
         self.text.resize(350, 25)
         self.text.move(0, 462)
@@ -94,6 +96,8 @@ class MapsApp(QMainWindow):
         self.change_image()
 
     def place_find(self):
+        self.image.setFocus()
+
         toponym_to_find = self.text.text()
         geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
         geocoder_params = {
@@ -108,6 +112,6 @@ class MapsApp(QMainWindow):
 
         self.coord = toponym_coodrinates.split()
         self.scale = 1.0
-
+        self.point = toponym_coodrinates.replace(' ', ',')
         self.get_image()
         self.change_image()

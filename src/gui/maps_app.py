@@ -18,7 +18,7 @@ class MapsApp(QMainWindow):
 
         self.map_file = "map.png"
         self.pixmap = QPixmap()
-        self.image = QLabel(self)
+        self.image = QLabel()
 
         self.coord = ["37.530887", "55.70311"]
         self.scale = 1.0
@@ -41,6 +41,9 @@ class MapsApp(QMainWindow):
             file.write(response.content)
 
     def init_ui(self):
+        main_widget = QWidget()
+        self.setCentralWidget(main_widget)
+
         main_layout = QVBoxLayout()
 
         self.setGeometry(100, 100, *SCREEN_SIZE)
@@ -48,7 +51,8 @@ class MapsApp(QMainWindow):
 
         main_layout.addWidget(self.image)
 
-        self.setLayout(main_layout)
+
+        main_widget.setLayout(main_layout)
         self.setWindowTitle('Maps App')
         self.show()
 

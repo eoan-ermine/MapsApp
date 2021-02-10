@@ -19,11 +19,15 @@ class MapsApp(QMainWindow):
         self.pixmap = None
         self.image = None
 
+        self.coord = ["37.530887", "55.70311"]
+        self.scale = 1.0
+
         self.get_image()
         self.init_ui()
 
     def get_image(self):
-        map_request = "http://static-maps.yandex.ru/1.x/?ll=37.530887,55.703118&spn=0.002,0.002&l=map"
+        map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&spn=0.002,0.002&" \
+                      f"scale={self.scale}&l=map"
         response = requests.get(map_request)
 
         if not response:

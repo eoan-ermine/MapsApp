@@ -2,7 +2,7 @@ import os
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMainWindow, qApp
+from PyQt5.QtWidgets import QMainWindow, qApp, QVBoxLayout
 
 import requests
 from PyQt5.QtGui import QPixmap
@@ -15,7 +15,6 @@ SCREEN_SIZE = [600, 450]
 class MapsApp(QMainWindow):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle('Maps App')
 
         self.map_file = "map.png"
         self.pixmap = QPixmap()
@@ -29,7 +28,6 @@ class MapsApp(QMainWindow):
         self.change_image()
 
     def get_image(self):
-        print(self.coord)
         map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&spn=0.002,0.002&" \
                       f"scale={self.scale}&l=map"
         response = requests.get(map_request)
@@ -43,9 +41,16 @@ class MapsApp(QMainWindow):
             file.write(response.content)
 
     def init_ui(self):
+        main_layout = QVBoxLayout()
+
         self.setGeometry(100, 100, *SCREEN_SIZE)
-        self.image.move(0, 0)
         self.image.resize(600, 450)
+
+        main_layout.addWidget(self.image)
+
+        self.setLayout(main_layout)
+        self.setWindowTitle('Maps App')
+        self.show()
 
     def change_image(self):
         self.pixmap.load(self.map_file)

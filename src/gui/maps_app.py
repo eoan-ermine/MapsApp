@@ -69,7 +69,7 @@ class MapsApp(QMainWindow):
         
         flush_btn = QPushButton("Сброс поискового результата")
         flush_btn.setFocusPolicy(Qt.NoFocus)
-        flush_btn.clicked.connect(self.remove_point)
+        flush_btn.clicked.connect(self.flush_result)
 
         search_layout.addWidget(self.text)
         search_layout.addWidget(search_btn)
@@ -95,12 +95,22 @@ class MapsApp(QMainWindow):
         select_view_layout.addWidget(self.scheme_btn)
         select_view_layout.addWidget(self.satellite_btn)
         select_view_layout.addWidget(self.hybrid_btn)
-
+        
+        # Address layout
+        
+        address_layout = QHBoxLayout()
+        
+        address_layout.addWidget(QLabel("Адрес: "))
+        self.address_edit = QLineEdit()
+        
+        address_layout.addWidget(self.address_edit)
+        
         # Compose it all in main_layout
         
         main_layout.addLayout(select_view_layout)
         main_layout.addWidget(self.image)
         main_layout.addLayout(search_layout)
+        main_layout.addLayout(address_layout)
 
         main_widget.setLayout(main_layout)
         self.setWindowTitle('Maps App')
@@ -152,8 +162,12 @@ class MapsApp(QMainWindow):
         self.scale = 1.0
         self.point = toponym_coodrinates.replace(' ', ',')
         
+        address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
+        self.address_edit.setText(address)
+        
         self.get_image()
         self.change_image()
     
-    def remove_point(self):
+    def flush_result(self):
         self.point = ""
+        self.address_edit.clear()

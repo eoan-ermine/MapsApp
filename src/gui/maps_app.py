@@ -32,15 +32,15 @@ class MapsApp(QMainWindow):
     def get_image(self):
         map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&spn=0.002,0.002&" \
                       f"scale={self.scale}&l=map&pt={self.point}"
-        self.response = requests.get(map_request)
+        response = requests.get(map_request)
 
-        if not self.response:
+        if not response:
             print("Ошибка выполнения запроса:")
             print(map_request)
-            print("Http статус:", self.response.status_code, "(", self.response.reason, ")")
+            print("Http статус:", response.status_code, "(", response.reason, ")")
             qApp.exit(1)
         with open(self.map_file, "wb") as file:
-            file.write(self.response.content)
+            file.write(response.content)
 
     def init_ui(self):
         main_layout = QVBoxLayout()

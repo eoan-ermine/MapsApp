@@ -2,14 +2,14 @@ import os
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMainWindow, qApp, QVBoxLayout
+from PyQt5.QtWidgets import QMainWindow, qApp, QVBoxLayout, QHBoxLayout
 
 import requests
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit
 
 
-SCREEN_SIZE = [600, 500]
+SCREEN_SIZE = [600, 450]
 
 
 class MapsApp(QMainWindow):
@@ -44,25 +44,22 @@ class MapsApp(QMainWindow):
 
     def init_ui(self):
         main_layout = QVBoxLayout()
-
-        self.setGeometry(100, 100, *SCREEN_SIZE)
         self.image.resize(600, 450)
-
-        self.btn = QPushButton('Принять', self)
+        
+        search_layout = QHBoxLayout()
+        
+        self.btn = QPushButton('Принять')
         self.btn.setFocusPolicy(Qt.NoFocus)
-
-        self.btn.resize(100, 25)
-        self.btn.move(500, 462)
         self.btn.clicked.connect(self.place_find)
 
-        self.text = QLineEdit(self)
+        self.text = QLineEdit()
         self.text.setFocusPolicy(Qt.ClickFocus)
 
-        self.text.resize(350, 25)
-        self.text.move(0, 462)
-
+        search_layout.addWidget(self.text)
+        search_layout.addWidget(self.btn)
+        
         main_layout.addWidget(self.image)
-        main_layout.addWidget(self.btn)
+        main_layout.addLayout(search_layout)
 
         self.setLayout(main_layout)
         self.setWindowTitle('Maps App')
@@ -113,5 +110,6 @@ class MapsApp(QMainWindow):
         self.coord = toponym_coodrinates.split()
         self.scale = 1.0
         self.point = toponym_coodrinates.replace(' ', ',')
+        
         self.get_image()
         self.change_image()

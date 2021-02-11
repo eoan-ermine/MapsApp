@@ -2,11 +2,11 @@ import os
 
 from PyQt5 import QtGui
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QMainWindow, qApp, QVBoxLayout, QHBoxLayout, QPushButton
+from PyQt5.QtWidgets import QMainWindow, qApp, QVBoxLayout, QHBoxLayout
 
 import requests
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit
 
 
 SCREEN_SIZE = [600, 450]
@@ -23,6 +23,7 @@ class MapsApp(QMainWindow):
         self.coord = ["37.530887", "55.70311"]
         self.scale = 1.0
 
+        self.point = ""
         self.layer = "map"
 
         self.get_image()
@@ -31,7 +32,7 @@ class MapsApp(QMainWindow):
 
     def get_image(self):
         map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&spn=0.002,0.002&" \
-                      f"scale={self.scale}&l={self.layer}"
+                      f"scale={self.scale}&l={self.layer}&pt={self.point}"
         response = requests.get(map_request)
 
         if not response:
@@ -51,8 +52,26 @@ class MapsApp(QMainWindow):
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
 
+        self.image.resize(600, 450)
+        
         main_layout = QVBoxLayout()
+        
+        # Search layout
+        
+        search_layout = QHBoxLayout()
+        
+        self.btn = QPushButton('Принять')
+        self.btn.setFocusPolicy(Qt.NoFocus)
+        self.btn.clicked.connect(self.place_find)
 
+        self.text = QLineEdit()
+        self.text.setFocusPolicy(Qt.ClickFocus)
+
+        search_layout.addWidget(self.text)
+        search_layout.addWidget(self.btn)
+        
+        # Select view layout
+        
         select_view_layout = QHBoxLayout()
         select_view_layout.addWidget(QLabel("Выбрать слой: "))
 
@@ -72,11 +91,11 @@ class MapsApp(QMainWindow):
         select_view_layout.addWidget(self.satellite_btn)
         select_view_layout.addWidget(self.hybrid_btn)
 
-        self.setGeometry(100, 100, *SCREEN_SIZE)
-        self.image.resize(600, 450)
-
+        # Compose it all in main_layout
+        
         main_layout.addLayout(select_view_layout)
         main_layout.addWidget(self.image)
+        main_layout.addLayout(search_layout)
 
         main_widget.setLayout(main_layout)
         self.setWindowTitle('Maps App')
@@ -106,5 +125,27 @@ class MapsApp(QMainWindow):
             if self.scale > 1:
                 self.scale -= 0.1
 
+        self.get_image()
+        self.change_image()
+
+    def place_find(self):
+        self.image.setFocus()
+
+        toponym_to_find = self.text.text()
+        geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
+        geocoder_params = {
+            "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
+            "geocode": toponym_to_find,
+            "format": "json"}
+        response = requests.get(geocoder_api_server, params=geocoder_params)
+        json_response = response.json()
+        toponym = json_response["response"]["GeoObjectCollection"][
+            "featureMember"][0]["GeoObject"]
+        toponym_coodrinates = toponym["Point"]["pos"]
+
+        self.coord = toponym_coodrinates.split()
+        self.scale = 1.0
+        self.point = toponym_coodrinates.replace(' ', ',')
+        
         self.get_image()
         self.change_image()

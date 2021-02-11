@@ -6,7 +6,7 @@ from PyQt5.QtWidgets import QMainWindow, qApp, QVBoxLayout, QHBoxLayout
 
 import requests
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit
+from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit, QCheckBox
 
 
 SCREEN_SIZE = [600, 450]
@@ -25,6 +25,8 @@ class MapsApp(QMainWindow):
 
         self.point = ""
         self.layer = "map"
+        
+        self.show_postal = False
 
         self.get_image()
         self.init_ui()
@@ -103,7 +105,11 @@ class MapsApp(QMainWindow):
         address_layout.addWidget(QLabel("Адрес: "))
         self.address_edit = QLineEdit()
         
+        show_postal_box = QCheckBox("Показывать почтовый индекс")
+        show_postal_box.stateChanged.connect(lambda state: self.set_show_postal(state))
+        
         address_layout.addWidget(self.address_edit)
+        address_layout.addWidget(show_postal_box)
         
         # Compose it all in main_layout
         
@@ -163,10 +169,14 @@ class MapsApp(QMainWindow):
         self.point = toponym_coodrinates.replace(' ', ',')
         
         address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
-        self.address_edit.setText(address)
+        postal_code = toponym["metaDataProperty"]["GeocoderMetaData"]["Address"]["postal_code"]
+        self.address_edit.setText(address + (f" {postal_code}") if self.show_postal else "")
         
         self.get_image()
         self.change_image()
+    
+    def set_show_postal(state):
+        self.show_postal = state
     
     def flush_result(self):
         self.point = ""

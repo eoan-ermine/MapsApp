@@ -60,15 +60,20 @@ class MapsApp(QMainWindow):
         
         search_layout = QHBoxLayout()
         
-        self.btn = QPushButton('Принять')
-        self.btn.setFocusPolicy(Qt.NoFocus)
-        self.btn.clicked.connect(self.place_find)
+        search_btn = QPushButton('Принять')
+        search_btn.setFocusPolicy(Qt.NoFocus)
+        search_btn.clicked.connect(self.place_find)
 
         self.text = QLineEdit()
         self.text.setFocusPolicy(Qt.ClickFocus)
+        
+        flush_btn = QPushButton("Сброс поискового результата")
+        flush_btn.setFocusPolicy(Qt.NoFocus)
+        flush_btn.clicked.connect(self.remove_point)
 
         search_layout.addWidget(self.text)
-        search_layout.addWidget(self.btn)
+        search_layout.addWidget(search_btn)
+        search_layout.addWidget(flush_btn)
         
         # Select view layout
         
@@ -149,3 +154,6 @@ class MapsApp(QMainWindow):
         
         self.get_image()
         self.change_image()
+    
+    def remove_point(self):
+        self.point = ""

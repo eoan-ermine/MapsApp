@@ -18,12 +18,13 @@ class MapsApp(QMainWindow):
 
         self.map_file = "map.png"
         self.pixmap = QPixmap()
-        self.image = QLabel(self)
+        self.image = QLabel()
 
         self.coord = ["37.530887", "55.70311"]
         self.scale = 1.0
 
         self.point = ""
+        self.layer = "map"
 
         self.get_image()
         self.init_ui()
@@ -31,7 +32,7 @@ class MapsApp(QMainWindow):
 
     def get_image(self):
         map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&spn=0.002,0.002&" \
-                      f"scale={self.scale}&l=map&pt={self.point}"
+                      f"scale={self.scale}&l={self.layer}&pt={self.point}"
         response = requests.get(map_request)
 
         if not response:
@@ -42,9 +43,20 @@ class MapsApp(QMainWindow):
         with open(self.map_file, "wb") as file:
             file.write(response.content)
 
+    def set_layer(self, layer_name):
+        self.layer = layer_name
+        self.get_image()
+        self.change_image()
+
     def init_ui(self):
-        main_layout = QVBoxLayout()
+        main_widget = QWidget()
+        self.setCentralWidget(main_widget)
+
         self.image.resize(600, 450)
+        
+        main_layout = QVBoxLayout()
+        
+        # Search layout
         
         search_layout = QHBoxLayout()
         
@@ -58,10 +70,34 @@ class MapsApp(QMainWindow):
         search_layout.addWidget(self.text)
         search_layout.addWidget(self.btn)
         
+        # Select view layout
+        
+        select_view_layout = QHBoxLayout()
+        select_view_layout.addWidget(QLabel("Выбрать слой: "))
+
+        self.scheme_btn = QPushButton("Схема")
+        self.scheme_btn.clicked.connect(lambda e: self.set_layer("map"))
+        self.scheme_btn.setFocusPolicy(Qt.NoFocus)
+
+        self.satellite_btn = QPushButton("Спутник")
+        self.satellite_btn.clicked.connect(lambda e: self.set_layer("sat"))
+        self.satellite_btn.setFocusPolicy(Qt.NoFocus)
+
+        self.hybrid_btn = QPushButton("Гибрид")
+        self.hybrid_btn.clicked.connect(lambda e: self.set_layer("sat,skl"))
+        self.hybrid_btn.setFocusPolicy(Qt.NoFocus)
+
+        select_view_layout.addWidget(self.scheme_btn)
+        select_view_layout.addWidget(self.satellite_btn)
+        select_view_layout.addWidget(self.hybrid_btn)
+
+        # Compose it all in main_layout
+        
+        main_layout.addLayout(select_view_layout)
         main_layout.addWidget(self.image)
         main_layout.addLayout(search_layout)
 
-        self.setLayout(main_layout)
+        main_widget.setLayout(main_layout)
         self.setWindowTitle('Maps App')
         self.show()
 

@@ -6,8 +6,7 @@ from PyQt5.QtWidgets import QMainWindow, qApp, QVBoxLayout, QHBoxLayout
 
 import requests
 from PyQt5.QtGui import QPixmap
-from PyQt5.QtWidgets import QApplication, QWidget, QLabel, QPushButton, QLineEdit
-
+from PyQt5.QtWidgets import QCheckBox, QWidget, QLabel, QPushButton, QLineEdit
 
 SCREEN_SIZE = [600, 450]
 
@@ -25,6 +24,8 @@ class MapsApp(QMainWindow):
 
         self.point = ""
         self.layer = "map"
+
+        self.show_postal = False
 
         self.get_image()
         self.init_ui()
@@ -53,20 +54,20 @@ class MapsApp(QMainWindow):
         self.setCentralWidget(main_widget)
 
         self.image.resize(600, 450)
-        
+
         main_layout = QVBoxLayout()
-        
+
         # Search layout
-        
+
         search_layout = QHBoxLayout()
-        
+
         search_btn = QPushButton('Принять')
         search_btn.setFocusPolicy(Qt.NoFocus)
         search_btn.clicked.connect(self.place_find)
 
         self.text = QLineEdit()
         self.text.setFocusPolicy(Qt.ClickFocus)
-        
+
         flush_btn = QPushButton("Сброс поискового результата")
         flush_btn.setFocusPolicy(Qt.NoFocus)
         flush_btn.clicked.connect(self.flush_result)
@@ -74,9 +75,9 @@ class MapsApp(QMainWindow):
         search_layout.addWidget(self.text)
         search_layout.addWidget(search_btn)
         search_layout.addWidget(flush_btn)
-        
+
         # Select view layout
-        
+
         select_view_layout = QHBoxLayout()
         select_view_layout.addWidget(QLabel("Выбрать слой: "))
 
@@ -95,18 +96,23 @@ class MapsApp(QMainWindow):
         select_view_layout.addWidget(self.scheme_btn)
         select_view_layout.addWidget(self.satellite_btn)
         select_view_layout.addWidget(self.hybrid_btn)
-        
+
         # Address layout
-        
+
         address_layout = QHBoxLayout()
-        
+
         address_layout.addWidget(QLabel("Адрес: "))
         self.address_edit = QLineEdit()
-        
+        self.address_edit.setFocusPolicy(Qt.NoFocus)
+
+        show_postal = QCheckBox("Показать почтовый индекс")
+        show_postal.stateChanged.connect(self.set_show_postal)
+
         address_layout.addWidget(self.address_edit)
-        
+        address_layout.addWidget(show_postal)
+
         # Compose it all in main_layout
-        
+
         main_layout.addLayout(select_view_layout)
         main_layout.addWidget(self.image)
         main_layout.addLayout(search_layout)
@@ -115,6 +121,9 @@ class MapsApp(QMainWindow):
         main_widget.setLayout(main_layout)
         self.setWindowTitle('Maps App')
         self.show()
+
+    def set_show_postal(self, state):
+        self.show_postal = state
 
     def change_image(self):
         self.pixmap.load(self.map_file)
@@ -161,13 +170,18 @@ class MapsApp(QMainWindow):
         self.coord = toponym_coodrinates.split()
         self.scale = 1.0
         self.point = toponym_coodrinates.replace(' ', ',')
-        
+
+        print(toponym)
+
         address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
-        self.address_edit.setText(address)
-        
+        postal_code = ": " + toponym["metaDataProperty"]["GeocoderMetaData"]["Address"].get("postal_code", "") \
+            if self.show_postal else ""
+
+        self.address_edit.setText(address + postal_code)
+
         self.get_image()
         self.change_image()
-    
+
     def flush_result(self):
         self.point = ""
         self.address_edit.clear()

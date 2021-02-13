@@ -20,7 +20,9 @@ class MapsApp(QMainWindow):
         self.image = QLabel()
 
         self.coord = ["37.530887", "55.70311"]
+
         self.scale = 1.0
+        self.zoom = 17
 
         self.point = ""
         self.layer = "map"
@@ -33,8 +35,8 @@ class MapsApp(QMainWindow):
         self.change_image()
 
     def get_image(self):
-        map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&spn=0.002,0.002&" \
-                      f"scale={self.scale}&l={self.layer}&pt={self.point}"
+        map_request = f"http://static-maps.yandex.ru/1.x/?ll={','.join(self.coord)}&" \
+                      f"scale={self.scale}&l={self.layer}&pt={self.point}&z={self.zoom}"
         response = requests.get(map_request)
 
         if not response:
@@ -108,6 +110,7 @@ class MapsApp(QMainWindow):
 
         show_postal = QCheckBox("Показать почтовый индекс")
         show_postal.stateChanged.connect(self.set_show_postal)
+        show_postal.setFocusPolicy(Qt.NoFocus)
 
         address_layout.addWidget(self.address_edit)
         address_layout.addWidget(show_postal)
@@ -146,11 +149,15 @@ class MapsApp(QMainWindow):
         elif key == Qt.Key_Down:
             self.coord[1] = str(float(self.coord[1]) - 0.001)
         elif key == Qt.Key_PageUp:
-            if self.scale < 4:
-                self.scale += 0.1
+            if self.zoom != 17:
+                self.zoom = min(self.zoom + 1, 17)
+            else:
+                self.scale = min(self.scale + 0.1, 4.0)
         elif key == Qt.Key_PageDown:
-            if self.scale > 1:
-                self.scale -= 0.1
+            if self.scale == 1:
+                self.zoom = max(self.zoom - 1, 0)
+            else:
+                self.scale = max(self.scale - 0.1, 1)
 
         self.get_image()
         self.change_image()

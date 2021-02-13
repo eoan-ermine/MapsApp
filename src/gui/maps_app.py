@@ -26,6 +26,7 @@ class MapsApp(QMainWindow):
         self.layer = "map"
 
         self.show_postal = False
+        self.toponym = None
 
         self.get_image()
         self.init_ui()
@@ -124,6 +125,8 @@ class MapsApp(QMainWindow):
 
     def set_show_postal(self, state):
         self.show_postal = state
+        if self.toponym:
+            self.update_address_edit(self.toponym)
 
     def change_image(self):
         self.pixmap.load(self.map_file)
@@ -152,6 +155,13 @@ class MapsApp(QMainWindow):
         self.get_image()
         self.change_image()
 
+    def update_address_edit(self, toponym):
+        address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
+        postal_code = ": " + toponym["metaDataProperty"]["GeocoderMetaData"]["Address"].get("postal_code", "") \
+            if self.show_postal else ""
+
+        self.address_edit.setText(address + postal_code)
+
     def place_find(self):
         self.image.setFocus()
 
@@ -163,21 +173,15 @@ class MapsApp(QMainWindow):
             "format": "json"}
         response = requests.get(geocoder_api_server, params=geocoder_params)
         json_response = response.json()
-        toponym = json_response["response"]["GeoObjectCollection"][
+        self.toponym = json_response["response"]["GeoObjectCollection"][
             "featureMember"][0]["GeoObject"]
-        toponym_coodrinates = toponym["Point"]["pos"]
+        toponym_coodrinates = self.toponym["Point"]["pos"]
 
         self.coord = toponym_coodrinates.split()
         self.scale = 1.0
         self.point = toponym_coodrinates.replace(' ', ',')
 
-        print(toponym)
-
-        address = toponym["metaDataProperty"]["GeocoderMetaData"]["text"]
-        postal_code = ": " + toponym["metaDataProperty"]["GeocoderMetaData"]["Address"].get("postal_code", "") \
-            if self.show_postal else ""
-
-        self.address_edit.setText(address + postal_code)
+        self.update_address_edit(self.toponym)
 
         self.get_image()
         self.change_image()
